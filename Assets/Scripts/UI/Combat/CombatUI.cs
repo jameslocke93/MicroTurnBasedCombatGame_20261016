@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CombatUI : MonoBehaviour {
@@ -7,10 +8,10 @@ public class CombatUI : MonoBehaviour {
 
     [SerializeField] private UnityEngine.UI.Button equipmentButton;
     [SerializeField] private UnityEngine.UI.Button attackButton;
-    [SerializeField] private UnityEngine.UI.Image playerHealthBarFill;
-    [SerializeField] private UnityEngine.UI.Image enemyHealthBarFill;
-
+    [SerializeField] private UnityEngine.UI.Button skillsButton;
     public event EventHandler OnAttackButtonClickedEvent;
+    public event EventHandler OnSkillsButtonClickedEvent;
+    public event EventHandler<SkillData> OnSkillSelectedEvent;
 
     private void Awake() {
         if (Instance != null && Instance != this) {
@@ -20,6 +21,7 @@ public class CombatUI : MonoBehaviour {
         }
         equipmentButton.onClick.AddListener(OnEquipmentButtonClicked);
         attackButton.onClick.AddListener(OnAttackButtonClicked);
+        skillsButton.onClick.AddListener(OnSkillsButtonClicked);
     }
 
     private void OnEquipmentButtonClicked() {
@@ -34,5 +36,16 @@ public class CombatUI : MonoBehaviour {
             return;
         }
         OnAttackButtonClickedEvent?.Invoke(this, EventArgs.Empty);
+    }
+    private void OnSkillsButtonClicked() {
+        if (GameManager.Instance.CurrentState == GameManager.GameState.CombatOver) {
+            return;
+        }
+        OnSkillsButtonClickedEvent?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void SkillSelected(SkillData skill) {
+        Debug.Log($"Skill {skill.skillName} selected!");
+        OnSkillSelectedEvent?.Invoke(this, skill);
     }
 }

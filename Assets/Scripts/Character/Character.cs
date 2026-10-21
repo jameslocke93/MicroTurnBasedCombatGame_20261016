@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Character : MonoBehaviour {
@@ -23,8 +24,24 @@ public class Character : MonoBehaviour {
         Debug.Log($"{characterData.characterName} took {damage} damage and now has {currentHP} HP.");
     }
 
+    public void Heal(int healAmount) {
+        currentHP += healAmount;
+        if (currentHP > characterData.maxHP) {
+            currentHP = characterData.maxHP;
+        }
+        Debug.Log($"{characterData.characterName} healed {healAmount} HP and now has {currentHP} HP.");
+    }
+
+    public void UseMP(int mpCost) {
+        currentMP -= mpCost;
+        if (currentMP < 0) {
+            currentMP = 0;
+        }
+        Debug.Log($"{characterData.characterName} used {mpCost} MP and now has {currentMP} MP.");
+    }
+
     public SkillData GetBasicAttack() {
-        return characterData.skills[0];
+        return characterData.basicAttack;
     }
 
     public int GetCurrentHP() {
@@ -39,7 +56,31 @@ public class Character : MonoBehaviour {
         return characterData.maxHP;
     }
 
+    public int GetMaxMP() {
+        return characterData.maxMP;
+    }
+
     public int GetAttackPower() {
         return characterData.attack;
+    }
+
+    public int GetDefense() {
+        return characterData.defense;
+    }
+
+    public int GetSpeed() {
+        return characterData.speed;
+    }
+
+    public int GetMagicPower() {
+        return characterData.magicAttack;
+    }
+
+    public List<SkillData> GetSkills() {
+        return characterData.skills;
+    }
+
+    public bool IsPlayable() {
+        return characterData.playable;
     }
 }

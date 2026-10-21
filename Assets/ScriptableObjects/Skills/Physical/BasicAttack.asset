@@ -14,4 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
   skillName: Basic Attack
   mpCost: 0
-  power: 1
+  power: 2
+  damageType: 0
+  effectType: 0
+  targetType: 1
+  rangeType: 0
