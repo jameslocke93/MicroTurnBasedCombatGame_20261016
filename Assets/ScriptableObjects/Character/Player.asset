@@ -20,5 +20,8 @@ MonoBehaviour:
   magicAttack: 10
   speed: 10
   skills:
-  - {fileID: 11400000, guid: 1e6511ad32d03e444b58fe8dfc0b49ae, type: 2}
+  - {fileID: 11400000, guid: 9f65dbc13ca73ed49a55dbc91355b44f, type: 2}
+  - {fileID: 11400000, guid: 12baf1b6cb0a65243a75de907fb3b66c, type: 2}
+  - {fileID: 11400000, guid: 67256feb33605d4458a75d36d3f8e06b, type: 2}
+  basicAttack: {fileID: 11400000, guid: 1e6511ad32d03e444b58fe8dfc0b49ae, type: 2}
   playable: 1

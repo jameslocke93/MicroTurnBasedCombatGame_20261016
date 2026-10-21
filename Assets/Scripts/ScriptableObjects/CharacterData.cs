@@ -11,6 +11,7 @@ public class CharacterData : ScriptableObject {
     public int magicAttack;
     public int speed;
     public List<SkillData> skills;
+    public SkillData basicAttack;
 
     public bool playable;
 

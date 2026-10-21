@@ -15,11 +15,6 @@ public class CombatOverUI : MonoBehaviour {
         equipmentButton.onClick.RemoveListener(OnEquipmentButtonClicked);
     }
 
-    private void Start() {
-        GameManager.Instance.OnCombatOverEvent += OnCombatOverEvent;
-        Hide();
-    }
-
     private void OnMainMenuButtonClicked() {
         SceneLoader.LoadScene(SceneLoader.Scene.MainMenuScene);
     }
@@ -28,20 +23,11 @@ public class CombatOverUI : MonoBehaviour {
         SceneLoader.LoadScene(SceneLoader.Scene.EquipmentScene);
     }
 
-    private void OnCombatOverEvent(object sender, GameManager.CombatOverEventArgs e) {
-        if (e.playerWon) {
+    public void SetCombatResult(bool playerWon) {
+        if (playerWon) {
             resultText.text = "Victory!";
         } else {
             resultText.text = "Defeat!";
         }
-        Show();
-    }
-
-    private void Show() {
-        gameObject.SetActive(true);
-    }
-
-    private void Hide() {
-        gameObject.SetActive(false);
     }
 }

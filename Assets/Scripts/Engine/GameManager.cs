@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour {
     [SerializeField] private List<Character> playerCharacters;
     [SerializeField] private List<Character> enemyCharacters;
 
-    public event EventHandler<DamageEventArgs> OnDamageEvent;
+    public event EventHandler<DamageEventArgs> OnActionEvent;
     public class DamageEventArgs : EventArgs {
         public Character target;
 
@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour {
             this.playerWon = playerWon;
         }
     }
+    public event EventHandler<Character> OnTurnChangedEvent;
 
     private Queue<Character> turnQueue;
     private Character currentActor;
@@ -40,17 +41,25 @@ public class GameManager : MonoBehaviour {
         } else {
             Instance = this;
         }
+        turnQueue = new Queue<Character>();
+        QueueActors();
+        NextActor();
     }
 
     private void Start() {
         CombatUI.Instance.OnAttackButtonClickedEvent += OnAttackButtonClicked;
+        CombatUI.Instance.OnSkillSelectedEvent += OnSkillSelected;
 
         CurrentState = GameState.Combat;
+    }
 
-        turnQueue = new Queue<Character>();
-        QueueActors();
-        NextActor();
-
+    private void OnSkillSelected(object sender, SkillData e) {
+        if (CurrentState == GameState.CombatOver) {
+            Debug.LogWarning("Combat is over, cannot use skills!");
+            return;
+        }
+        Debug.Log($"Skill selected: {e.skillName} by {currentActor.GetCharacterName()}!");
+        SpellAttackCycle(e);
     }
 
     private void OnAttackButtonClicked(object sender, EventArgs e) {
@@ -60,12 +69,12 @@ public class GameManager : MonoBehaviour {
         }
         Debug.Log($"Attack button clicked by {currentActor.GetCharacterName()}!");
         BasicAttackCycle();
-        NextActor();
     }
 
     private void OnDestroy() {
         if (CombatUI.Instance != null) {
             CombatUI.Instance.OnAttackButtonClickedEvent -= OnAttackButtonClicked;
+            CombatUI.Instance.OnSkillSelectedEvent -= OnSkillSelected;
         }
     }
 
@@ -74,6 +83,9 @@ public class GameManager : MonoBehaviour {
         if (CurrentState == GameState.CombatOver) {
             return;
         }
+        while (turnQueue.Count > 0 && turnQueue.Peek().GetCurrentHP() <= 0) {
+            turnQueue.Dequeue(); // Remove dead characters from the queue
+        }
         if (turnQueue.Count > 0) {
             currentActor = turnQueue.Dequeue();
         } else {
@@ -81,6 +93,7 @@ public class GameManager : MonoBehaviour {
             currentActor = turnQueue.Dequeue();
         }
         Debug.Log($"It's {currentActor.GetCharacterName()}'s turn!");
+        OnTurnChangedEvent?.Invoke(this, currentActor);
     }
 
     private void QueueActors() {
@@ -98,7 +111,6 @@ public class GameManager : MonoBehaviour {
     }
 
     private void BasicAttackCycle() {
-        Character attacker = currentActor;
         Character target = ChooseTarget(currentActor);
 
         if (target == null) {
@@ -106,17 +118,31 @@ public class GameManager : MonoBehaviour {
             return;
         }
 
-        Debug.Log($"{attacker.GetCharacterName()} attacks {target.GetCharacterName()}! " +
-            $"Hits them with {attacker.GetBasicAttack().skillName}!");
-
-        target.TakeDamage(CalculateDamage(attacker.GetBasicAttack(), attacker));
-        OnDamageEvent?.Invoke(this, new DamageEventArgs(target));
+        Debug.Log($"{currentActor.GetCharacterName()} attacks {target.GetCharacterName()}! " +
+            $"Hits them with {currentActor.GetBasicAttack().skillName}!");
+        DoDamage(target, currentActor.GetBasicAttack());
     }
 
-    private int CalculateDamage(SkillData skill, Character attacker) {
-        //Placeholder damage calculation, will be replaced with a more complex formula later
-        Debug.Log($"Calculating damage for {attacker.GetCharacterName()} using skill {skill.skillName} with power {skill.power} and attack power {attacker.GetAttackPower()}");
-        return skill.power * attacker.GetAttackPower();
+    private void SpellAttackCycle(SkillData skill) {
+        // TODO: Need to select target based on player input or AI logic
+        Character target = ChooseTarget(currentActor);
+
+        if (target == null) {
+            Debug.LogWarning("No valid target found for skill!");
+            return;
+        }
+
+        if (skill.targetType == SkillTargetType.Ally) {
+            target = currentActor; // For now, just target self for ally skills
+        }
+        DoDamage(target, skill);
+    }
+
+    private void DoDamage(Character target, SkillData skill) {
+        if (SkillResolver.ResolveSkill(currentActor, target, skill)) {
+            OnActionEvent?.Invoke(this, new DamageEventArgs(target));
+            NextActor();
+        }
     }
 
     private Character ChooseTarget(Character attacker) {
@@ -165,5 +191,9 @@ public class GameManager : MonoBehaviour {
     private void CombatOver() {
         CurrentState = GameState.CombatOver;
         turnQueue.Clear();
+    }
+
+    public Character GetCurrentActor() {
+        return currentActor;
     }
 }
